@@ -3,582 +3,434 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>8-Week Strength + 10k</title>
+  <title>8‑Week Strength + 10k — Gym App</title>
   <meta name="theme-color" content="#0f172a" />
-  <!-- UI (no build needed) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React + Babel (no build needed) -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <style>
+    :root { --bg:#000; --card:#0b0b0b; --muted:#1a1a1a; --text:#e5e7eb; --dim:#9ca3af; --accent:#93c5fd; --bar:#e5e7eb; }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+    .wrap{max-width:1000px;margin:0 auto;padding:16px;}
+    .row{display:flex;gap:8px;flex-wrap:wrap;}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;}
+    .btn{padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;background:#0f0f0f;color:var(--text);}
+    .btn[aria-current="page"]{background:#121212;box-shadow:0 0 0 1px #2a2a2a inset;}
+    .card{background:var(--card);border:1px solid #1e1e1e;border-radius:12px;padding:12px;}
+    .h1{font-size:22px;font-weight:700;margin:0 0 2px;}
+    .muted{color:var(--dim);} .small{font-size:12px;} .xsmall{font-size:11px;}
+    select,input,textarea{background:#0f0f0f;color:var(--text);border:1px solid #2a2a2a;border-radius:8px;padding:8px;}
+    input:focus,textarea:focus,select:focus{outline:2px solid #343434;}
+    .grid{display:grid;gap:8px;} .g2{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .g3{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .bar{height:8px;background:#111;border-radius:8px;overflow:hidden;}
+    .bar>i{display:block;height:100%;background:var(--bar);} 
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border:1px solid #2a2a2a;border-radius:999px;}
+    .section{margin:10px 0;}
+    .link{color:var(--accent);text-decoration:none}
+    .link:active{opacity:.7}
+    .cta{padding:10px 12px;border:1px solid #2a2a2a;border-radius:10px;background:#101010}
+    .hidden{display:none}
+    .ok{color:#86efac} .warn{color:#fca5a5}
+    .loader{padding:12px}
+    @media (max-width:720px){.g3{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  </style>
 </head>
-<body class="bg-black text-slate-100">
-  <div id="root" class="min-h-screen p-4"></div>
+<body>
+  <div class="wrap">
+    <header class="row" style="justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div>
+        <div class="h1">8‑Week Strength + 10k Plan</div>
+        <div class="xsmall muted">Autosaves on this device. Export/Import available in ⋯ menu.</div>
+      </div>
+      <div class="row">
+        <button class="btn" id="downloadBtn" title="Download backup JSON">Download</button>
+        <label class="btn" for="importInput" title="Import backup JSON" style="cursor:pointer">Import<input id="importInput" type="file" accept="application/json" class="hidden"></label>
+      </div>
+    </header>
 
-  <script type="text/babel">
-    const {useState, useEffect, useMemo} = React;
+    <nav class="tabs">
+      <button class="btn" data-tab="guide" aria-current="page">Guide</button>
+      <button class="btn" data-tab="plan">Plan</button>
+      <button class="btn" data-tab="today">Today</button>
+      <button class="btn" data-tab="stats">Stats</button>
+      <button class="btn" data-tab="recovery">Recovery</button>
+    </nav>
 
-    // ---------- Local storage hook ----------
-    const useLocalState = (key, initial) => {
-      const [state, setState] = useState(() => {
-        try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : initial; }
-        catch { return initial; }
-      });
-      useEffect(() => { try { localStorage.setItem(key, JSON.stringify(state)); } catch {} }, [key, state]);
-      return [state, setState];
+    <main id="tab-guide" class="tab card">
+      <h2 style="margin:0 0 8px">How to use this plan</h2>
+      <ul class="small">
+        <li><b>Weekly split:</b> Mon – Strength A • Wed – Run Speed/Tempo • Fri – Strength B • Sun – Long Easy.</li>
+        <li><b>Warm‑up & Cool‑down every day:</b> 5–10 minutes each (shown on the Today tab).</li>
+        <li><b>Progression:</b> +1 rep or small load weekly if form is good. Runs progress per week.</li>
+        <li><b>Intensity:</b> Strength RPE 7–8 (1–3 reps in reserve).</li>
+        <li><b>Joint care:</b> Neutral grips, controlled ROM, pain ≤3/10. Swap alternatives as needed.</li>
+        <li><b>Post‑workout recovery:</b> Log Sauna, Cryo, or Massage after each session.</li>
+      </ul>
+      <div class="section">
+        <div class="small muted"><b>Week‑by‑Week Strength Progression</b></div>
+        <ul class="small">
+          <li>W1: Find starting loads at RPE 7.</li>
+          <li>W2: +1 rep or small load.</li>
+          <li>W3: Keep load, aim top of rep ranges.</li>
+          <li>W4 (absorb): Same loads as W3; −1 set on accessories (noted below).</li>
+          <li>W5–7: Micro‑loads; form pristine.</li>
+          <li>W8: Maintain loads; 10k test or PR bench/row if fresh.</li>
+        </ul>
+      </div>
+      <div class="section card">
+        <div class="xsmall muted">Personal notes</div>
+        <textarea id="notes" rows="4" placeholder="Write cues, tweaks, reminders…" style="width:100%"></textarea>
+      </div>
+    </main>
+
+    <main id="tab-plan" class="tab card hidden"></main>
+
+    <main id="tab-today" class="tab card hidden"></main>
+
+    <main id="tab-stats" class="tab card hidden"></main>
+
+    <main id="tab-recovery" class="tab card hidden"></main>
+
+    <footer class="xsmall muted" style="margin-top:12px;">If you change URL/domain or use Private Browsing, local saves won’t carry over. Use Download to back up first.</footer>
+  </div>
+
+  <script>
+  (function(){
+    // ---------- Utilities ----------
+    const $ = (sel, el=document)=> el.querySelector(sel);
+    const $$ = (sel, el=document)=> Array.from(el.querySelectorAll(sel));
+    const uid = () => Math.random().toString(36).slice(2, 10);
+    const todayISO = () => new Date().toISOString().slice(0,10);
+    const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+    const parseSets = (s)=> typeof s==="number"? s : Number((String(s).match(/(\d+)/)||[])[1]||1);
+    const pct = (d,t)=> t? Math.round((d/t)*100) : 0;
+
+    // ---------- Storage (autosave) ----------
+    const LS = {
+      get(key, fallback){ try{ const v=localStorage.getItem(key); return v? JSON.parse(v) : fallback; }catch(e){ return fallback; } },
+      set(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
     };
 
-    // ---------- Helpers ----------
-    const uid = () => Math.random().toString(36).slice(2,10);
-    const todayISO = () => new Date().toISOString().slice(0,10);
-    const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
-    const parseSets = (s) => typeof s === "number" ? s : Number((String(s).match(/(\d+)/)||[])[1]||1);
-    const pct = (d,t) => t ? Math.round((d/t)*100) : 0;
+    const state = {
+      tab: LS.get('wk.tab','guide'),
+      logs: LS.get('wk.logs',{}),
+      weekIdx: LS.get('wk.week',0),
+      unit: LS.get('wk.unit','kg'),
+      body: LS.get('wk.body',{ entries:[], scans:[] }),
+      notes: LS.get('wk.notes',''),
+      recovery: LS.get('wk.recovery',{ sauna:[], cryo:[], massage:[] }),
+      todaySel: LS.get('wk.today',{ weekIdx:0, dayIdx:0 }),
+    };
 
-    // ---------- Program ----------
+    function commit(){
+      LS.set('wk.tab', state.tab);
+      LS.set('wk.logs', state.logs);
+      LS.set('wk.week', state.weekIdx);
+      LS.set('wk.unit', state.unit);
+      LS.set('wk.body', state.body);
+      LS.set('wk.notes', state.notes);
+      LS.set('wk.recovery', state.recovery);
+      LS.set('wk.today', state.todaySel);
+    }
+
+    // ---------- Program Data ----------
     const LIFTS_A = [
-      { name: "Barbell or DB Bench Press", sets: 4, reps: "5-8", rpe: "7-8", kind: "lift" },
-      { name: "Supported Row (Chest-Supported DB or Cable)", sets: 4, reps: "8-10", rpe: "7-8", kind: "lift" },
-      { name: "Bulgarian Split Squat (knee-friendly)", sets: 3, reps: "8/leg", rpe: "7-8", kind: "lift" },
-      { name: "Incline DB Press (15–30°, neutral)", sets: 3, reps: "8-10", rpe: "8", kind: "lift" },
-      { name: "Lat Pulldown (neutral/medium)", sets: 3, reps: "8-10", rpe: "8", kind: "lift" },
-      { name: "Face Pull or Cable External Rotation", sets: 3, reps: "12-15", rpe: "8-9", kind: "lift" },
+      { name: 'Barbell or DB Bench Press', sets: 4, reps: '5–8', rpe: '7–8', kind:'lift' },
+      { name: 'Supported Row (Chest‑Supported DB or Cable)', sets: 4, reps: '8–10', rpe: '7–8', kind:'lift' },
+      { name: 'Bulgarian Split Squat (knee‑friendly)', sets: 3, reps: '8/leg', rpe: '7–8', kind:'lift' },
+      { name: 'Incline DB Press (15–30°, neutral)', sets: 3, reps: '8–10', rpe: '8', kind:'lift' },
+      { name: 'Lat Pulldown (neutral/medium)', sets: 3, reps: '8–10', rpe: '8', kind:'lift' },
+      { name: 'Face Pull or Cable External Rotation', sets: 3, reps: '12–15', rpe: '8–9', kind:'lift' },
     ];
     const LIFTS_B = [
-      { name: "Romanian Deadlift", sets: 4, reps: "6-8", rpe: "7-8", kind: "lift" },
-      { name: "Seated Cable Row (neutral/slight-wide)", sets: 4, reps: "8-12", rpe: "7-8", kind: "lift" },
-      { name: "Seated DB Shoulder Press (neutral)", sets: 3, reps: "6-10", rpe: "7-8", kind: "lift" },
-      { name: "Leg Press (comfortable depth)", sets: 3, reps: "10-12", rpe: "8", kind: "lift" },
-      { name: "Lat Pulldown (wide or neutral)", sets: 3, reps: "8-12", rpe: "8", kind: "lift" },
-      { name: "Y-T-W + Pallof Press (2 rounds)", sets: 2, reps: "Circuit", rpe: "—", kind: "lift" },
+      { name: 'Romanian Deadlift', sets: 4, reps: '6–8', rpe: '7–8', kind:'lift' },
+      { name: 'Seated Cable Row (neutral/slight‑wide)', sets: 4, reps: '8–12', rpe: '7–8', kind:'lift' },
+      { name: 'Seated DB Shoulder Press (neutral)', sets: 3, reps: '6–10', rpe: '7–8', kind:'lift' },
+      { name: 'Leg Press (comfortable depth)', sets: 3, reps: '10–12', rpe: '8', kind:'lift' },
+      { name: 'Lat Pulldown (wide or neutral)', sets: 3, reps: '8–12', rpe: '8', kind:'lift' },
+      { name: 'Y‑T‑W + Pallof Press (2 rounds)', sets: 2, reps: 'Circuit', rpe: '—', kind:'lift' },
     ];
 
     function runDayForWeek(wi){
       const w=wi+1;
-      const speed =
-        w===1? {title:"8×400 m @ RPE 7–8", sets:8, cue:"200 m easy between"} :
-        w===2? {title:"6×600 m @ RPE 7–8", sets:6, cue:"300 m easy between"} :
-        w===3? {title:"5×800 m @ RPE 8", sets:5, cue:"400 m easy between"} :
-        w===4? {title:"4×1 km @ RPE 7.5–8", sets:4, cue:"400–500 m easy"} :
-        w===5? {title:"5×1 km near 10k pace (RPE 8)", sets:5, cue:"400 m easy"} :
-        w===6? {title:"3×1 mile @ 10k–5k pace (RPE 8–8.5)", sets:3, cue:"600–800 m easy"} :
-        w===7? {title:"3×2 km slightly faster than 10k pace (RPE 8.5)", sets:3, cue:"600–800 m easy"} :
-                {title:"Tempo 20–25 min @ ~10k pace (RPE 8)", sets:1, cue:"Optional 4×30 s fast + 60 s easy"};
-      return {
-        warmup: "5–10 min easy jog + mobility + 3×20 s strides",
-        blocks: [{title: speed.title, kind:"run", sets: speed.sets, detail: speed.cue}],
-        cooldown: "5–10 min easy jog/walk + stretch quads/hamstrings/glutes/calves",
-      };
+      const speed = w===1?{title:'8×400 m @ RPE 7–8',sets:8,cue:'200 m easy between'}
+        : w===2?{title:'6×600 m @ RPE 7–8',sets:6,cue:'300 m easy between'}
+        : w===3?{title:'5×800 m @ RPE 8',sets:5,cue:'400 m easy between'}
+        : w===4?{title:'4×1 km @ RPE 7.5–8',sets:4,cue:'400–500 m easy'}
+        : w===5?{title:'5×1 km near 10k pace (RPE 8)',sets:5,cue:'400 m easy'}
+        : w===6?{title:'3×1 mile @ 10k–5k pace (RPE 8–8.5)',sets:3,cue:'600–800 m easy'}
+        : w===7?{title:'3×2 km slightly faster than 10k pace (RPE 8.5)',sets:3,cue:'600–800 m easy'}
+        : {title:'Tempo 20–25 min @ ~10k pace (RPE 8)',sets:1,cue:'Optional 4×30 s fast + 60 s easy'};
+      return { warmup:'5–10 min easy jog + mobility + 3×20 s strides', blocks:[{title:speed.title,kind:'run',sets:speed.sets,detail:speed.cue}], cooldown:'5–10 min easy jog/walk + stretch quads/hamstrings/glutes/calves' };
     }
     function longRunForWeek(wi){
       const dist=[6,7,8,7,9,10,10,8][wi];
-      const note= wi===7 ? "Taper for 10k test, or schedule an event mid-week" : "RPE 6 (comfortable)";
-      return {
-        warmup: "5–10 min walk→jog ramp + 2×20 s strides",
-        blocks: [{title: dist+" km easy", kind:"run", sets:1, detail:"Optional finish: 4×20 s strides"}],
-        cooldown: "5–10 min walk easy + calf/ham/hip flexor stretches",
-        note
-      };
+      const note= wi===7? 'Taper for 10k test, or schedule an event mid‑week' : 'RPE 6 (comfortable)';
+      return { warmup:'5–10 min walk→jog ramp + 2×20 s strides', blocks:[{title:dist+' km easy', kind:'run', sets:1, detail:'Optional finish: 4×20 s strides'}], cooldown:'5–10 min walk easy + calf/ham/hip flexor stretches', note };
     }
     function makeWeek(idx){
-      const phase = idx<3? "Base" : idx<4? "Absorb" : idx<7? "Build" : "Peak";
+      const phase = idx<3? 'Base' : idx<4? 'Absorb' : idx<7? 'Build' : 'Peak';
       const tweak = (ex) => {
         const out={...ex};
-        if ([5,6,7].includes(idx) && out.rpe && out.rpe!=="—") out.rpe="8–9";
-        if (idx===3 && /(Bulgarian|Lat Pulldown|Leg Press)/.test(out.name)) {
-          const base=parseSets(out.sets); out.sets=Math.max(1, base-1);
-        }
+        if ([5,6,7].includes(idx) && out.rpe && out.rpe!=='—') out.rpe='8–9';
+        if (idx===3 && /(Bulgarian|Lat Pulldown|Leg Press)/.test(out.name)) { const base=parseSets(out.sets); out.sets=Math.max(1, base-1); }
         return out;
       };
       return {
-        name: "Week "+(idx+1),
-        focus: phase,
-        days: [
-          { name:"Day 1 — Strength A (chest/back bias)",
-            warmup:"5–10 min brisk walk/row + shoulders (band pull-aparts ×20, ER ×15/side) + hips (glute bridge ×15, BW split squat ×8/side)",
-            blocks:[{title:"Main & Accessories", kind:"lift-group", exercises: LIFTS_A.map(tweak)}],
-            cooldown:"5–10 min easy + pec doorway, lats/child’s pose, hip flexors, calves",
-            notes:"Home swaps: Bench→DB floor press; Row→1-arm DB row; Pulldown→towel-assisted rows; Face pulls→band pull-aparts."
-          },
-          { name:"Day 2 — Run: Speed/Tempo", run: runDayForWeek(idx) },
-          { name:"Day 3 — Strength B (back/chest bias)",
-            warmup:"5–10 min bike/row + shoulder CARs & wall slides ×8 + hinge drill ×10",
-            blocks:[{title:"Main & Accessories", kind:"lift-group", exercises: LIFTS_B.map(tweak)}],
-            cooldown:"5–10 min easy bike + stretch lats, pec minor, glutes, hamstrings",
-            notes:"Home swaps: RDL→DB RDL; Row→1-arm DB row; Press→½-kneel single-arm DB press; Leg press→step-ups; Pulldown→banded pulldown."
-          },
-          { name:"Day 4 — Run: Endurance (Long Easy)", run: longRunForWeek(idx) },
+        name:'Week '+(idx+1), focus:phase, days:[
+          { name:'Day 1 — Strength A (chest/back bias)',
+            warmup:'5–10 min brisk walk/row + shoulders (band pull‑aparts ×20, ER ×15/side) + hips (glute bridge ×15, BW split squat ×8/side)',
+            blocks:[{title:'Main & Accessories', kind:'lift-group', exercises:LIFTS_A.map(tweak)}],
+            cooldown:'5–10 min easy + pec doorway, lats/child’s pose, hip flexors, calves',
+            notes:'Home swaps: Bench→DB floor press; Row→1‑arm DB row; Pulldown→towel‑assisted rows; Face pulls→band pull‑aparts.' },
+          { name:'Day 2 — Run: Speed/Tempo', run: runDayForWeek(idx) },
+          { name:'Day 3 — Strength B (back/chest bias)',
+            warmup:'5–10 min bike/row + shoulder CARs & wall slides ×8 + hinge drill ×10',
+            blocks:[{title:'Main & Accessories', kind:'lift-group', exercises:LIFTS_B.map(tweak)}],
+            cooldown:'5–10 min easy bike + stretch lats, pec minor, glutes, hamstrings',
+            notes:'Home swaps: RDL→DB RDL; Row→1‑arm DB row; Press→½‑kneel single‑arm DB press; Leg press→step‑ups; Pulldown→banded pulldown.' },
+          { name:'Day 4 — Run: Endurance (Long Easy)', run: longRunForWeek(idx) },
         ]
       };
     }
     const PROGRAM = Array.from({length:8},(_,i)=>makeWeek(i));
 
-    // ---------- Completion ----------
-    const keyFor = (wi,di,bi,ei,s) => `${wi}:${di}:${bi}:${ei}:${s}`;
-    function countSetsDay(day){
-      if (day.run) return day.run.blocks[0].sets||1;
-      return day.blocks.reduce((acc,b)=>acc + b.exercises.reduce((s,ex)=>s+parseSets(ex.sets),0),0);
+    // ---------- Derived ----------
+    function keyFor(wi,di,bi,ei,s){ return `${wi}:${di}:${bi}:${ei}:${s}` }
+    function setsInDay(day){ if(day.run) return day.run.blocks[0].sets||1; return day.blocks.reduce((a,b)=> a + b.exercises.reduce((s,ex)=> s + parseSets(ex.sets),0), 0); }
+    function doneInDay(wi,di,day){ let done=0; if(day.run){ const n=day.run.blocks[0].sets||1; for(let s=1;s<=n;s++){ if(state.logs[keyFor(wi,di,0,0,s)]?.done) done++; } return done; } day.blocks.forEach((b,bi)=> b.exercises.forEach((ex,ei)=>{ const n=parseSets(ex.sets); for(let s=1;s<=n;s++){ if(state.logs[keyFor(wi,di,bi,ei,s)]?.done) done++; }})); return done; }
+    function completion(){ const byWeek = PROGRAM.map((w,wi)=>{ let total=0,done=0; w.days.forEach((d,di)=>{ if(d.run){ const n=d.run.blocks[0].sets||1; total+=n; for(let s=1;s<=n;s++){ if(state.logs[keyFor(wi,di,0,0,s)]?.done) done++; } } else { d.blocks.forEach((b,bi)=> b.exercises.forEach((ex,ei)=>{ const n=parseSets(ex.sets); total+=n; for(let s=1;s<=n;s++){ if(state.logs[keyFor(wi,di,bi,ei,s)]?.done) done++; }})); } }); return {total,done}; }); const total=byWeek.reduce((a,b)=>({total:a.total+b.total, done:a.done+b.done}),{total:0,done:0}); return {byWeek,total}; }
+
+    // ---------- Rendering ----------
+    function setActiveTab(name){ state.tab=name; commit(); $$('.tab').forEach(x=>x.classList.add('hidden')); $(`.tabs .btn[aria-current="page"]`)?.setAttribute('aria-current','false'); $(`.tabs .btn[data-tab="${name}"]`)?.setAttribute('aria-current','page'); $(`#tab-${name}`)?.classList.remove('hidden');
+      if(name==='plan') renderPlan();
+      if(name==='today') renderToday();
+      if(name==='stats') renderStats();
+      if(name==='guide') { $('#notes').value = state.notes; }
+      if(name==='recovery') renderRecovery();
     }
-    function countDoneForDay(wi,di,day,logs){
-      let done=0;
-      if (day.run){
-        const sets=day.run.blocks[0].sets||1;
-        for(let s=1;s<=sets;s++) if (logs[keyFor(wi,di,0,0,s)]?.done) done++;
-        return done;
+
+    // Guide notes
+    $('#notes').addEventListener('input', (e)=>{ state.notes = e.target.value; commit(); });
+
+    // Header actions
+    $('#downloadBtn').addEventListener('click', ()=>{ const data={ logs:state.logs, unit:state.unit, body:state.body, notes:state.notes, recovery:state.recovery, todaySel:state.todaySel }; const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`workout-export-${todayISO()}.json`; a.click(); URL.revokeObjectURL(a.href); });
+    $('#importInput').addEventListener('change', (e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(String(r.result||'{}')); if(d.logs) state.logs=d.logs; if(d.unit) state.unit=d.unit; if(d.body) state.body=d.body; if(d.notes!==undefined) state.notes=d.notes; if(d.recovery) state.recovery=d.recovery; if(d.todaySel) state.todaySel=d.todaySel; commit(); alert('Imported.'); setActiveTab(state.tab); }catch(err){ alert('Import failed: '+err.message); } }; r.readAsText(f); });
+
+    // Tabs
+    $$('.tabs .btn').forEach(b=> b.addEventListener('click', ()=> setActiveTab(b.dataset.tab)) );
+
+    // Plan tab
+    function renderPlan(){ const w = PROGRAM[state.weekIdx]; const comp = completion().byWeek[state.weekIdx]||{done:0,total:0}; const el=$('#tab-plan'); el.innerHTML = ''+
+      `<div class="row" style="align-items:center;gap:8px;margin-bottom:8px">`+
+      `  <div class="pill"><b>${w.name}</b><span class="muted">• ${w.focus}</span></div>`+
+      `  <div class="xsmall muted">Completion ${pct(comp.done,comp.total)}%</div>`+
+      `  <div style="margin-left:auto" class="row">`+
+      `    <button class="btn" id="prevWeek">Prev</button>`+
+      `    <select id="weekSel" class="btn" style="padding-right:24px">${PROGRAM.map((wk,i)=>`<option value="${i}" ${i===state.weekIdx?'selected':''}>${wk.name}</option>`).join('')}</select>`+
+      `    <button class="btn" id="nextWeek">Next</button>`+
+      `  </div>`+
+      `</div>`+
+      `<div class="grid g2">${w.days.map((d,di)=>{ const total=setsInDay(d); const done=doneInDay(state.weekIdx,di,d); return `
+        <div class="card">
+          <div><b>${d.name}</b></div>
+          <div class="bar" style="margin:6px 0 8px"><i style="width:${pct(done,total)}%"></i></div>
+          ${d.run?`
+            <div class="xsmall"><b>${d.run.blocks[0].title}</b></div>
+            <div class="xsmall muted" style="margin-bottom:6px">${d.run.blocks[0].detail||''}</div>
+            ${d.run.note?`<div class="xsmall muted" style="margin-bottom:6px">Note: ${d.run.note}</div>`:''}
+          `:`
+            ${d.blocks.map(b=>`
+              <div class="xsmall" style="margin-bottom:4px"><b>${b.title||'Main & Accessories'}</b></div>
+              <ul class="xsmall muted" style="margin-top:-2px;margin-bottom:6px">${b.exercises.map(ex=>`<li>${ex.name} <span class="muted">${ex.sets}×${ex.reps}${ex.rpe?` • RPE ${ex.rpe}`:''}</span></li>`).join('')}</ul>
+            `).join('')}
+          `}
+          <div class="row" style="margin-top:6px">
+            <button class="btn" data-open-today="${di}">Open in Today</button>
+          </div>
+        </div>`; }).join('')}</div>`;
+
+      $('#prevWeek').onclick=()=>{ state.weekIdx = clamp(state.weekIdx-1,0,PROGRAM.length-1); commit(); renderPlan(); };
+      $('#nextWeek').onclick=()=>{ state.weekIdx = clamp(state.weekIdx+1,0,PROGRAM.length-1); commit(); renderPlan(); };
+      $('#weekSel').onchange=(e)=>{ state.weekIdx=Number(e.target.value); commit(); renderPlan(); };
+      $$('#tab-plan [data-open-today]').forEach(btn=> btn.onclick=()=>{ state.todaySel={ weekIdx:state.weekIdx, dayIdx:Number(btn.dataset.openToday) }; commit(); setActiveTab('today'); });
+    }
+
+    // Today tab
+    function renderToday(){ const week = PROGRAM[state.todaySel.weekIdx] || PROGRAM[0]; const day = week.days[state.todaySel.dayIdx] || week.days[0]; const el=$('#tab-today'); if(!day){ el.innerHTML='<div class="muted">Pick a valid day.</div>'; return; }
+      const unit = state.unit;
+      const selector = `
+      <div class="row" style="align-items:center;margin-bottom:8px">
+        <div class="xsmall">Week</div>
+        <select id="selWeek" class="btn">${PROGRAM.map((w,i)=>`<option value="${i}" ${i===state.todaySel.weekIdx?'selected':''}>${w.name}</option>`).join('')}</select>
+        <div class="xsmall">Day</div>
+        <select id="selDay" class="btn">${PROGRAM[state.todaySel.weekIdx].days.map((d,i)=>`<option value="${i}" ${i===state.todaySel.dayIdx?'selected':''}>${d.name}</option>`).join('')}</select>
+        <div class="xsmall muted" style="margin-left:auto">Unit</div>
+        <select id="unitSel" class="btn"><option value="kg" ${unit==='kg'?'selected':''}>kg</option><option value="lb" ${unit==='lb'?'selected':''}>lb</option></select>
+      </div>`;
+
+      if(day.run){
+        const block = day.run.blocks[0]; const sets = Array.from({length:block.sets},(_,i)=>i+1);
+        el.innerHTML = selector + `
+          <div><b>${week.name}</b> • <b>${day.name}</b></div>
+          <div class="xsmall muted" style="margin:6px 0">Warm‑up: ${day.run.warmup} • ${block.title} • ${block.detail} • Cool‑down: ${day.run.cooldown}</div>
+          <div class="card" style="margin:8px 0">
+            <div class="xsmall" style="margin-bottom:6px"><b>Intervals / Tempo</b></div>
+            <div class="grid g3">${sets.map(s=>{ const k=keyFor(state.todaySel.weekIdx,state.todaySel.dayIdx,0,0,s); const rec=state.logs[k]||{}; return `
+              <div class="card" style="background:#0f0f0f">
+                <div class="xsmall muted">Rep ${s}</div>
+                <div class="grid g2" style="margin:6px 0">
+                  <input placeholder="Dist (m or km)" value="${rec.distKm??''}" data-k="${k}" data-f="distKm" />
+                  <input placeholder="Time (mm:ss)" value="${rec.time??''}" data-k="${k}" data-f="time" />
+                  <input placeholder="RPE" value="${rec.rpe??''}" data-k="${k}" data-f="rpe" />
+                </div>
+                <button class="btn" data-done="${k}">${rec.done?'Done':'Mark done'}</button>
+              </div>`; }).join('')}</div>
+          </div>
+          <div class="card" style="margin:8px 0">
+            <div class="xsmall" style="margin-bottom:4px">Session notes</div>
+            <textarea id="runNotes" rows="3" placeholder="How hard (1–10)? Knee/shoulder feel?"></textarea>
+          </div>
+          ${renderQuickRecovery()}
+        `;
+        const notesKey = `run-notes-${state.todaySel.weekIdx}-${state.todaySel.dayIdx}`; $('#runNotes').value = (state.logs[notesKey]||{}).text||''; $('#runNotes').oninput=(e)=>{ state.logs[notesKey]={...(state.logs[notesKey]||{}), text:e.target.value}; commit(); };
+      } else {
+        el.innerHTML = selector + `
+          <div><b>${week.name}</b> • <b>${day.name}</b></div>
+          <div class="xsmall muted" style="margin:6px 0">Warm‑up: ${day.warmup} • Cool‑down: ${day.cooldown}</div>
+          ${day.blocks.map((b,bi)=>`<div class="card" style="margin:8px 0">
+            <div class="xsmall" style="margin-bottom:6px"><b>${b.title||'Main & Accessories'}</b></div>
+            <div class="grid g3">${b.exercises.map((ex,ei)=>{ const sets=Array.from({length:parseSets(ex.sets)},(_,i)=>i+1); return `
+              <div class="card" style="background:#0f0f0f">
+                <div class="small"><b>${ex.name}</b></div>
+                <div class="xsmall muted" style="margin-bottom:4px">${ex.sets}×${ex.reps}${ex.rpe?` • RPE ${ex.rpe}`:''}</div>
+                <div class="grid g2" style="margin:6px 0">${sets.map(s=>{ const k=keyFor(state.todaySel.weekIdx,state.todaySel.dayIdx,bi,ei,s); const rec=state.logs[k]||{}; return `
+                  <input placeholder="Weight (${state.unit})" value="${rec.weight??''}" data-k="${k}" data-f="weight" />
+                  <input placeholder="Reps" value="${rec.reps??''}" data-k="${k}" data-f="reps" />
+                `}).join('')}</div>
+                <div class="row"><button class="btn" data-done="${state.todaySel.weekIdx}:${state.todaySel.dayIdx}:${bi}:${ei}:all">Mark all done</button></div>
+              </div>`; }).join('')}</div>
+          </div>
+          ${renderQuickRecovery()}
+        `;
       }
-      day.blocks.forEach((b,bi)=>b.exercises.forEach((ex,ei)=>{
-        for(let s=1;s<=parseSets(ex.sets);s++) if (logs[keyFor(wi,di,bi,ei,s)]?.done) done++;
-      }));
-      return done;
-    }
-    function computeCompletion(program, logs){
-      const byWeek = program.map((w,wi)=>{
-        let total=0, done=0;
-        w.days.forEach((d,di)=>{
-          if (d.run){ const sets=d.run.blocks[0].sets||1; total+=sets;
-            for(let s=1;s<=sets;s++) if (logs[keyFor(wi,di,0,0,s)]?.done) done++;
-          } else {
-            d.blocks.forEach((b,bi)=>b.exercises.forEach((ex,ei)=>{
-              const sets=parseSets(ex.sets); total+=sets;
-              for(let s=1;s<=sets;s++) if (logs[keyFor(wi,di,bi,ei,s)]?.done) done++;
-            }));
-          }
-        });
-        return {total, done};
+
+      // Hook up controls
+      $('#selWeek').onchange=(e)=>{ state.todaySel.weekIdx=Number(e.target.value); state.todaySel.dayIdx=0; commit(); renderToday(); };
+      $('#selDay').onchange=(e)=>{ state.todaySel.dayIdx=Number(e.target.value); commit(); renderToday(); };
+      $('#unitSel').onchange=(e)=>{ state.unit=e.target.value; commit(); renderToday(); };
+
+      // Inputs (delegate)
+      $$('#tab-today input[data-k]').forEach(inp=>{
+        inp.addEventListener('input', (e)=>{ const k=e.target.dataset.k; const f=e.target.dataset.f; const prev=state.logs[k]||{}; state.logs[k]={...prev,[f]:e.target.value}; commit(); });
       });
-      const total = byWeek.reduce((a,b)=>({total:a.total+b.total, done:a.done+b.done}), {total:0, done:0});
-      return {byWeek, total};
+      $$('#tab-today [data-done]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id=btn.dataset.done;
+          if(id.endsWith(':all')){
+            const [wi,di,bi,ei] = id.split(':').slice(0,4).map(Number);
+            const ex=PROGRAM[wi].days[di].blocks[bi].exercises[ei]; const n=parseSets(ex.sets);
+            for(let s=1;s<=n;s++){ const k=keyFor(wi,di,bi,ei,s); state.logs[k]={...(state.logs[k]||{}), done:true}; }
+          } else {
+            state.logs[id]={...(state.logs[id]||{}), done: !state.logs[id]?.done};
+          }
+          commit(); renderToday();
+        });
+      });
     }
 
-    // ---------- App ----------
-    function App(){
-      const [tab,setTab] = useLocalState("wk.tab","guide");
-      const [logs,setLogs] = useLocalState("wk.logs",{});
-      const [weekIdx,setWeekIdx] = useLocalState("wk.week",0);
-      const [unit,setUnit] = useLocalState("wk.unit","kg");
-      const [body,setBody] = useLocalState("wk.body",{ entries:[], scans:[] });
-      const [notes,setNotes] = useLocalState("wk.notes","");
-      const [recovery,setRecovery] = useLocalState("wk.recovery",{ sauna:[], cryo:[], massage:[] });
-      const [sel,setSel] = useLocalState("wk.today",{ weekIdx:0, dayIdx:0 });
-
-      const week = PROGRAM[clamp(weekIdx,0,PROGRAM.length-1)];
-      const completion = useMemo(()=>computeCompletion(PROGRAM, logs),[logs]);
-      const weekCompletion = completion.byWeek[weekIdx] || {done:0,total:0};
-
-      return (
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
-            <div>
-              <h1 className="text-2xl font-bold">8-Week Strength + 10k Plan</h1>
-              <p className="text-xs text-slate-400">Autosaves on this device. Use Export/Import to back up or move devices.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button className="px-3 py-1.5 text-sm rounded-md border" onClick={()=>{
-                const blob = new Blob([JSON.stringify({logs,unit,body,notes,recovery},null,2)],{type:"application/json"});
-                const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-                a.download=`workout-export-${todayISO()}.json`; a.click(); URL.revokeObjectURL(a.href);
-              }}>Download</button>
-              <label className="px-3 py-1.5 text-sm rounded-md border cursor-pointer">
-                Import
-                <input type="file" accept="application/json" className="hidden" onChange={(e)=>{
-                  const f=e.target.files?.[0]; if(!f) return; const r=new FileReader();
-                  r.onload=()=>{ try{
-                    const data=JSON.parse(String(r.result||"{}"));
-                    data.logs && setLogs(data.logs);
-                    data.unit && setUnit(data.unit);
-                    data.body && setBody(data.body);
-                    data.notes!==undefined && setNotes(data.notes);
-                    data.recovery && setRecovery(data.recovery);
-                    alert("Imported.");
-                  } catch(err){ alert("Import failed: "+err.message);} };
-                  r.readAsText(f);
-                }}/>
-              </label>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-2 mb-3 flex-wrap">
-            {["guide","plan","today","stats","recovery"].map(t=>(
-              <button key={t} className={`px-3 py-1.5 text-sm rounded-md border ${tab===t?'bg-neutral-900':''}`} onClick={()=>setTab(t)}>
-                {t[0].toUpperCase()+t.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          {tab==="guide" && <GuideTab notes={notes} setNotes={setNotes} />}
-          {tab==="plan" && <PlanTab week={week} weekIdx={weekIdx} setWeekIdx={setWeekIdx} logs={logs} setLogs={setLogs} setSel={setSel} setRecovery={setRecovery} weekCompletion={weekCompletion} />}
-          {tab==="today" && <Today sel={sel} setSel={setSel} logs={logs}
-            updateLog={(k,p)=>setLogs(prev=>({...prev,[k]:{...prev[k],...p}}))}
-            toggleDone={(k)=>setLogs(prev=>({...prev,[k]:{...prev[k],done:!prev[k]?.done}}))}
-            unit={unit} setRecovery={setRecovery} />}
-          {tab==="stats" && <Stats completion={completion} body={body} setBody={setBody} />}
-          {tab==="recovery" && <RecoveryPanel recovery={recovery} setRecovery={setRecovery} />}
+    function renderQuickRecovery(){
+      return `<div class="card" style="margin-top:8px">
+        <div class="small" style="margin-bottom:6px"><b>Post‑workout recovery (choose one)</b></div>
+        <div class="xsmall muted" style="margin-bottom:6px">Sauna after Strength B or Long Run (10–20 min); Cryo after hard run days; Massage device any day 5–10 min.</div>
+        <div class="row">
+          <button class="btn" data-recov="sauna">Log Sauna</button>
+          <button class="btn" data-recov="cryo">Log Cryo</button>
+          <button class="btn" data-recov="massage">Log Massage</button>
         </div>
-      );
+      </div>`;
     }
 
-    // ----- Tabs -----
-    function GuideTab({notes,setNotes}){
-      return (
-        <div className="bg-neutral-900 rounded-xl border border-neutral-700 p-4 space-y-4">
-          <h2 className="font-semibold">How to use this plan</h2>
-          <ul className="list-disc ml-5 text-sm space-y-1">
-            <li><b>Weekly split:</b> Mon – Strength A • Wed – Run Speed/Tempo • Fri – Strength B • Sun – Long Easy.</li>
-            <li><b>Warm-up & Cool-down:</b> 5–10 min each (shown on Today tab).</li>
-            <li><b>Progression:</b> +1 rep or small load weekly if form = good.</li>
-            <li><b>Intensity:</b> Strength RPE 7–8.</li>
-            <li><b>Post-workout recovery:</b> Log Sauna, Cryo, or Massage after each session.</li>
-          </ul>
-          <div className="rounded-lg border border-neutral-700 p-3">
-            <div className="text-xs mb-1">Personal notes</div>
-            <textarea className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" rows="4"
-              value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Write cues, tweaks, reminders…" />
+    // Stats tab
+    function renderStats(){ const comp=completion(); const el=$('#tab-stats'); const bw=comp.byWeek; const body=state.body; const last=(a,n)=> (a||[]).slice(-n);
+      function mkChart(points, unit){ if(!points||points.length<2) return '<div class="xsmall muted">Add two entries to see a chart.</div>'; const W=600,H=140,P=28; const vals=points.map(p=>p.v); let min=Math.min(...vals), max=Math.max(...vals); if(min===max){min-=1;max+=1;} const sx=(W-P*2)/(points.length-1); const sy=v=> H-P - ( (v-min)/(max-min) * (H-P*2) ); const coords=points.map((p,i)=>[P+i*sx, sy(p.v)]); const d=coords.map((c,i)=>(i?'L':'M')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' '); return `<svg viewBox="0 0 ${W} ${H}" style="width:100%" preserveAspectRatio="none">${[0,1,2,3,4].map(i=>{const y=P+i*(H-P*2)/4; return `<line x1="${P}" y1="${y}" x2="${W-P}" y2="${y}" stroke="#1f2937" stroke-width="1"/>`}).join('')}<path d="${d}" fill="none" stroke="${getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#93c5fd'}" stroke-width="2.5"/>${coords.map((c,i)=>`<circle cx="${c[0]}" cy="${c[1]}" r="2.5" fill="#93c5fd"/>`).join('')}</svg>`; }
+      const weightPts = [...(body.entries||[]),(...(body.scans||[]))].filter(e=>e.weight!=null).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>({d:e.date,v:Number(e.weight)}));
+      const bfPts = [...(body.entries||[]),(...(body.scans||[]))].filter(e=>e.bodyfat!=null).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>({d:e.date,v:Number(e.bodyfat)}));
+      const hydrPts = (body.scans||[]).filter(e=>e.hydration!=null).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>({d:e.date,v:Number(e.hydration)}));
+      const musclePts = (body.scans||[]).filter(e=>e.muscleMass!=null).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>({d:e.date,v:Number(e.muscleMass)}));
+      el.innerHTML = `
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <div class="small"><b>Overall completion</b></div>
+            <div class="xsmall"><b>${comp.total.done}</b> / ${comp.total.total} sets</div>
           </div>
+          <div class="bar" style="margin-top:6px"><i style="width:${pct(comp.total.done,comp.total.total)}%"></i></div>
         </div>
-      );
-    }
-
-    function PlanTab({week, weekIdx, setWeekIdx, logs, setLogs, setSel, setRecovery, weekCompletion}){
-      return (
-        <div className="bg-neutral-900 rounded-xl border border-neutral-700 p-4">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <div className="font-semibold">{week.name} • {week.focus}</div>
-            <div className="text-xs text-slate-400">Completion {pct(weekCompletion.done, weekCompletion.total)}%</div>
-            <div className="ml-auto flex items-center gap-2">
-              <button className="px-2 py-1 text-sm rounded-md border" onClick={()=>setWeekIdx(w=>clamp(w-1,0,PROGRAM.length-1))}>Prev</button>
-              <select className="px-2 py-1 text-sm rounded-md border" value={weekIdx} onChange={e=>setWeekIdx(Number(e.target.value))}>
-                {PROGRAM.map((w,i)=>(<option key={i} value={i}>{w.name}</option>))}
-              </select>
-              <button className="px-2 py-1 text-sm rounded-md border" onClick={()=>setWeekIdx(w=>clamp(w+1,0,PROGRAM.length-1))}>Next</button>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-3">
-            {week.days.map((d,di)=>(<DayCard key={di} weekIdx={weekIdx} dayIdx={di} day={d} logs={logs} setSel={setSel} setRecovery={setRecovery}/>))}
-          </div>
+        <div class="card" style="margin-top:8px">
+          <div class="small" style="margin-bottom:6px"><b>Week‑by‑week completion</b></div>
+          <div class="grid g3">${bw.map((w,i)=>`<div class="card"><div class="row" style="justify-content:space-between"><div class="xsmall">Week ${i+1}</div><div class="xsmall muted">${w.done}/${w.total}</div></div><div class="bar" style="margin-top:4px"><i style="width:${pct(w.done,w.total)}%"></i></div></div>`).join('')}</div>
         </div>
-      );
-    }
-
-    function DayCard({weekIdx, dayIdx, day, logs, setSel, setRecovery}){
-      const setsTotal = useMemo(()=>countSetsDay(day),[day]);
-      const setsDone = useMemo(()=>countDoneForDay(weekIdx, dayIdx, day, logs),[weekIdx, dayIdx, day, logs]);
-      const isRun = !!day.run;
-      return (
-        <div className="rounded-xl border border-neutral-700 p-3">
-          <div className="font-semibold">{day.name}</div>
-          <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden my-2">
-            <div className="h-full bg-slate-100" style={{width:`${pct(setsDone,setsTotal)}%`}}></div>
-          </div>
-
-          {!isRun && day.blocks?.map((b,bi)=>(
-            <div key={bi} className="rounded-lg border border-neutral-700 p-2 mb-2">
-              <div className="text-xs font-semibold mb-1">{b.title || "Main & Accessories"}</div>
-              <ul className="text-sm list-disc ml-5">
-                {b.exercises.map((ex,ei)=>(
-                  <li key={ei}>{ex.name} <span className="text-xs text-slate-400">{ex.sets}×{ex.reps}{ex.rpe?` • RPE ${ex.rpe}`:""}</span></li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
-          {isRun && (
-            <div className="rounded-lg border border-neutral-700 p-2 mb-2">
-              <div className="text-xs font-semibold">{day.run.blocks[0].title}</div>
-              <div className="text-xs text-slate-400">{day.run.blocks[0].detail}</div>
-            </div>
-          )}
-          {isRun && day.run.note && (<div className="text-xs text-slate-400 mb-2">Note: {day.run.note}</div>)}
-
-          <QuickRecovery weekIdx={weekIdx} dayIdx={dayIdx} setRecovery={setRecovery} />
-          <button className="mt-2 px-3 py-1.5 text-sm rounded-md border" onClick={()=>setSel({weekIdx, dayIdx})}>Open in Today</button>
+        <div class="grid g2" style="margin-top:8px">
+          <div class="card"><div class="small" style="margin-bottom:6px"><b>Weight (kg)</b></div>${mkChart(weightPts,'kg')}</div>
+          <div class="card"><div class="small" style="margin-bottom:6px"><b>Body Fat (%)</b></div>${mkChart(bfPts,'%')}</div>
+          <div class="card"><div class="small" style="margin-bottom:6px"><b>Hydration (%)</b></div>${mkChart(hydrPts,'%')}</div>
+          <div class="card"><div class="small" style="margin-bottom:6px"><b>Skeletal Muscle (kg)</b></div>${mkChart(musclePts,'kg')}</div>
         </div>
-      );
-    }
-
-    function Today({ sel, setSel, logs, updateLog, toggleDone, unit, setRecovery }){
-      const week = PROGRAM[sel.weekIdx];
-      const day = week?.days?.[sel.dayIdx];
-      if (!day) return <div className="bg-neutral-900 rounded-xl border border-neutral-700 p-4 text-sm">Pick a valid day.</div>;
-
-      const selector = (
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <div className="text-sm">Week</div>
-          <select className="px-2 py-1 text-sm rounded-md border" value={sel.weekIdx}
-            onChange={e=>setSel({...sel, weekIdx:Number(e.target.value), dayIdx:0})}>
-            {PROGRAM.map((w,i)=>(<option key={i} value={i}>{w.name}</option>))}
-          </select>
-          <div className="text-sm">Day</div>
-          <select className="px-2 py-1 text-sm rounded-md border" value={sel.dayIdx}
-            onChange={e=>setSel({...sel, dayIdx:Number(e.target.value)})}>
-            {PROGRAM[sel.weekIdx].days.map((d,i)=>(<option key={i} value={i}>{d.name}</option>))}
-          </select>
-          <div className="ml-auto text-xs text-slate-400">Unit:
-            <select className="ml-2 px-2 py-1 text-xs rounded-md border" defaultValue={unit}
-              onChange={e=>localStorage.setItem('wk.unit', JSON.stringify(e.target.value))}>
-              <option value="kg">kg</option><option value="lb">lb</option>
-            </select>
+        <div class="card" style="margin-top:8px">
+          <div class="small" style="margin-bottom:6px"><b>Body metrics (quick log)</b></div>
+          <div class="grid g3">
+            <div><div class="xsmall muted">Date</div><input type="date" id="mDate" value="${todayISO()}"/></div>
+            <div><div class="xsmall muted">Weight (kg)</div><input id="mWeight" placeholder="e.g., 78.5"/></div>
+            <div><div class="xsmall muted">Body fat % (opt.)</div><input id="mBF" placeholder="e.g., 18"/></div>
           </div>
+          <div class="row" style="margin-top:6px"><button class="btn" id="addBody">Add</button></div>
+          <div id="lastEntries" class="xsmall muted" style="margin-top:6px"></div>
         </div>
-      );
-
-      if (day.run){
-        const block = day.run.blocks[0];
-        const sets = Array.from({length:block.sets},(_,i)=>i+1);
-        return (
-          <div className="bg-neutral-900 rounded-xl border border-neutral-700 p-4">
-            {selector}
-            <div className="font-semibold mb-1">{PROGRAM[sel.weekIdx].name} • {day.name}</div>
-            <div className="text-xs text-slate-400 mb-2">Warm-up: {day.run.warmup} • {block.title} • {block.detail} • Cool-down: {day.run.cooldown}</div>
-            <div className="rounded-xl border border-neutral-700 p-3 mb-3">
-              <div className="text-xs font-semibold mb-2">Intervals / Tempo</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {sets.map(s=>{
-                  const k=keyFor(sel.weekIdx, sel.dayIdx, 0, 0, s);
-                  const rec=logs[k]||{};
-                  return (
-                    <div key={s} className={`rounded-lg border border-neutral-700 p-2 ${rec.done?'bg-neutral-800':'bg-neutral-900'}`}>
-                      <div className="text-xs text-slate-400 mb-1">Rep {s}</div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <input className="w-full border border-neutral-700 rounded-md p-1 text-sm bg-neutral-900" placeholder="Dist (m or km)" value={rec.distKm??""} onChange={e=>updateLog(k,{distKm:e.target.value})}/>
-                        <input className="w-full border border-neutral-700 rounded-md p-1 text-sm bg-neutral-900" placeholder="Time (mm:ss)" value={rec.time??""} onChange={e=>updateLog(k,{time:e.target.value})}/>
-                        <input className="w-full border border-neutral-700 rounded-md p-1 text-sm bg-neutral-900" placeholder="RPE" value={rec.rpe??""} onChange={e=>updateLog(k,{rpe:e.target.value})}/>
-                      </div>
-                      <button className="w-full px-2 py-1 text-sm rounded-md border" onClick={()=>toggleDone(k)}>{rec.done?'Done':'Mark done'}</button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="rounded-xl border border-neutral-700 p-3 mb-3">
-              <div className="text-xs mb-1">Session notes</div>
-              <textarea className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" rows="3"
-                placeholder="How hard (1–10)? Knee/shoulder feel?" value={(logs[`run-notes-${sel.weekIdx}-${sel.dayIdx}`]||{}).text||""}
-                onChange={e=>updateLog(`run-notes-${sel.weekIdx}-${sel.dayIdx}`, {text:e.target.value})}/>
-            </div>
-            <QuickRecovery weekIdx={sel.weekIdx} dayIdx={sel.dayIdx} setRecovery={setRecovery}/>
+        <div class="card" style="margin-top:8px">
+          <div class="small" style="margin-bottom:6px"><b>Monthly Body Scan</b></div>
+          <div class="grid g3">
+            <div><div class="xsmall muted">Date</div><input type="date" id="sDate" value="${todayISO()}"/></div>
+            <div><div class="xsmall muted">Weight (kg)</div><input id="sWeight"/></div>
+            <div><div class="xsmall muted">Body fat %</div><input id="sBF"/></div>
+            <div><div class="xsmall muted">Hydration %</div><input id="sHydr"/></div>
+            <div><div class="xsmall muted">Skeletal Muscle (kg)</div><input id="sMusc"/></div>
           </div>
-        );
-      }
+          <div class="row" style="margin-top:6px"><button class="btn" id="addScan">Add scan</button></div>
+        </div>`;
 
-      return (
-        <div className="bg-neutral-900 rounded-xl border border-neutral-700 p-4">
-          {selector}
-          <div className="font-semibold mb-1">{PROGRAM[sel.weekIdx].name} • {day.name}</div>
-          <div className="text-xs text-slate-400 mb-2">Warm-up: {day.warmup} • Cool-down: {day.cooldown}</div>
-          {day.blocks.map((b,bi)=>(
-            <div key={bi} className="rounded-xl border border-neutral-700 p-3 mb-3">
-              <div className="text-xs font-semibold mb-2">{b.title||"Main & Accessories"}</div>
-              {b.exercises.map((ex,ei)=>(
-                <ExerciseLogger key={ei} ex={ex} weekIdx={sel.weekIdx} dayIdx={sel.dayIdx} blockIdx={bi} exerciseIdx={ei}
-                  logs={logs} updateLog={updateLog} toggleDone={toggleDone} unit={unit}/>
-              ))}
-            </div>
-          ))}
-          <QuickRecovery weekIdx={sel.weekIdx} dayIdx={sel.dayIdx} setRecovery={setRecovery}/>
-        </div>
-      );
+      // last entries list
+      function renderLast(){ const arr=(state.body.entries||[]); const n=arr.slice(-5).reverse(); $('#lastEntries').innerHTML = n.length? ('Recent: '+ n.map(e=>`${e.date} • ${e.weight}kg${e.bodyfat!=null?' • '+e.bodyfat+'%':''}`).join('  ·  ')) : 'No entries yet.'; }
+      renderLast();
+
+      $('#addBody').onclick=()=>{ const e={ id:uid(), date:$('#mDate').value, weight:Number($('#mWeight').value||NaN), bodyfat: $('#mBF').value? Number($('#mBF').value): null }; if(!e.date||Number.isNaN(e.weight)){ alert('Need date and weight.'); return; } state.body.entries=[...(state.body.entries||[]), e]; commit(); renderStats(); };
+      $('#addScan').onclick=()=>{ const e={ id:uid(), date:$('#sDate').value, weight:$('#sWeight').value?Number($('#sWeight').value):null, bodyfat:$('#sBF').value?Number($('#sBF').value):null, hydration:$('#sHydr').value?Number($('#sHydr').value):null, muscleMass:$('#sMusc').value?Number($('#sMusc').value):null }; if(!e.date){ alert('Need a scan date.'); return; } state.body.scans=[...(state.body.scans||[]), e]; commit(); renderStats(); };
     }
 
-    function ExerciseLogger({ex, weekIdx, dayIdx, blockIdx, exerciseIdx, logs, updateLog, toggleDone, unit}){
-      const sets = Array.from({length:parseSets(ex.sets)},(_,i)=>i+1);
-      return (
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-1">
-            <div className="font-medium text-sm">{ex.name} <span className="text-xs text-slate-400">{ex.sets}×{ex.reps}{ex.rpe?` • RPE ${ex.rpe}`:""}</span></div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-            {sets.map(s=>{
-              const k=keyFor(weekIdx, dayIdx, blockIdx, exerciseIdx, s);
-              const rec=logs[k]||{};
-              return (
-                <div key={s} className={`rounded-lg border border-neutral-700 p-2 ${rec.done?'bg-neutral-800':'bg-neutral-900'}`}>
-                  <div className="text-xs text-slate-400 mb-1">Set {s}</div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <input className="w-full border border-neutral-700 rounded-md p-1 text-sm bg-neutral-900" placeholder={`Weight (${unit})`} value={rec.weight??""} onChange={e=>updateLog(k,{weight:e.target.value})}/>
-                    <input className="w-full border border-neutral-700 rounded-md p-1 text-sm bg-neutral-900" placeholder="Reps" value={rec.reps??""} onChange={e=>updateLog(k,{reps:e.target.value})}/>
-                  </div>
-                  <button className="w-full px-2 py-1 text-sm rounded-md border" onClick={()=>toggleDone(k)}>{rec.done?'Done':'Mark done'}</button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
+    // Recovery tab
+    function renderRecovery(){ const el=$('#tab-recovery'); const last=(t)=> (state.recovery[t]||[]).slice(-5); el.innerHTML = `
+      <div class="xsmall muted">Recommendations: <b>Sauna 1–2×/week</b> after Strength B or Long Run (10–20 min, hydrate). <b>Cryotherapy 1–2×/week</b> after hard run days. <b>Massage device 2–3×/week</b> 5–10 min on quads, glutes, upper back.</div>
+      <div class="grid g3" style="margin-top:8px">
+        ${['sauna','cryo','massage'].map(t=>`
+          <div class="card">
+            <div class="small" style="margin-bottom:6px"><b>${t[0].toUpperCase()+t.slice(1)}</b></div>
+            <button class="btn" data-log="${t}">Log ${t} today</button>
+            <ul class="xsmall" style="margin:8px 0 0 14px">${last(t).map(e=>`<li>${e.date}</li>`).join('')}</ul>
+          </div>`).join('')}
+      </div>`;
+      $$('#tab-recovery [data-log]').forEach(b=> b.onclick=()=>{ const t=b.dataset.log; state.recovery[t]=[...(state.recovery[t]||[]), {id:uid(), date:todayISO()}]; commit(); renderRecovery(); });
     }
 
-    function QuickRecovery({weekIdx, dayIdx, setRecovery}){
-      const log=(type)=>{
-        const date=todayISO();
-        setRecovery(prev=>({...prev, [type]:[...(prev[type]||[]), {id:uid(), date, weekIdx, dayIdx}]}));
-      };
-      return (
-        <div className="rounded-xl border border-neutral-700 p-3">
-          <div className="font-medium text-sm mb-1">Post-workout recovery (choose one)</div>
-          <div className="text-xs text-slate-400 mb-2">Sauna after Strength B or Long Run (10–20 min); Cryo after hard run days; Massage device any day 5–10 min.</div>
-          <div className="flex flex-wrap gap-2">
-            <button className="px-3 py-1.5 text-sm rounded-md border" onClick={()=>log('sauna')}>Log Sauna</button>
-            <button className="px-3 py-1.5 text-sm rounded-md border" onClick={()=>log('cryo')}>Log Cryotherapy</button>
-            <button className="px-3 py-1.5 text-sm rounded-md border" onClick={()=>log('massage')}>Log Massage</button>
-          </div>
-        </div>
-      );
-    }
+    // Init
+    // set up first render
+    setActiveTab(state.tab);
 
-    // ---- Stats + charts ----
-    function Stats({completion, body, setBody}){
-      const [date,setDate]=useState(todayISO());
-      const [weight,setWeight]=useState("");
-      const [bodyfat,setBodyfat]=useState("");
-      const [scan,setScan]=useState({bf:"",hydr:"",muscle:""});
+    // Safety: if Private Browsing or cookies blocked, localStorage may fail silently
+    try{ localStorage.setItem('wk.__test','1'); localStorage.removeItem('wk.__test'); }catch(e){ alert('Heads up: iOS is blocking site storage. Turn off Private Browsing or allow cookies for autosave.'); }
 
-      const addBody=()=>{ if(!weight) return;
-        const e={id:uid(), date, weight:Number(weight), bodyfat: bodyfat?Number(bodyfat):null};
-        setBody(prev=>({...prev, entries:[...(prev.entries||[]), e]})); setWeight(""); setBodyfat("");
-      };
-      const addScan=()=>{ const e={id:uid(), date, weight:weight?Number(weight):null, bodyfat:scan.bf?Number(scan.bf):null, hydration:scan.hydr?Number(scan.hydr):null, muscleMass:scan.muscle?Number(scan.muscle):null};
-        setBody(prev=>({...prev, scans:[...(prev.scans||[]), e]})); setScan({bf:"", hydr:"", muscle:""});
-      };
+    // Extra: from Plan card to Today
+    $('#tab-plan').addEventListener('click', (e)=>{
+      const b = e.target.closest('[data-open-today]'); if(!b) return; state.todaySel={ weekIdx:state.weekIdx, dayIdx:Number(b.dataset.openToday) }; commit(); setActiveTab('today');
+    });
 
-      const toPts=(arr,key)=>(arr||[]).filter(e=>e[key]!==undefined && e[key]!==null && !Number.isNaN(Number(e[key])))
-        .map(e=>({date:e.date, value:Number(e[key])}))
-        .sort((a,b)=>new Date(a.date)-new Date(b.date));
-      const weightPts=[...toPts(body.entries,'weight'), ...toPts(body.scans,'weight')].sort((a,b)=>new Date(a.date)-new Date(b.date));
-      const bfPts=[...toPts(body.entries,'bodyfat'), ...toPts(body.scans,'bodyfat')].sort((a,b)=>new Date(a.date)-new Date(b.date));
-      const hydrPts=toPts(body.scans,'hydration');
-      const musclePts=toPts(body.scans,'muscleMass');
-
-      return (
-        <div className="bg-neutral-900 rounded-xl border border-neutral-700 p-4 space-y-4">
-          <div className="rounded-xl border border-neutral-700 p-3">
-            <div className="flex items-center justify-between">
-              <div className="font-medium">Overall completion</div>
-              <div className="text-sm"><b>{completion.total.done}</b> / {completion.total.total} sets</div>
-            </div>
-            <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden mt-2">
-              <div className="h-full bg-slate-100" style={{width:`${pct(completion.total.done,completion.total.total)}%`}}></div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-neutral-700 p-3">
-            <div className="font-semibold mb-2">Week-by-week completion</div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-              {completion.byWeek.map((w,i)=>(
-                <div key={i} className="rounded-lg border border-neutral-700 p-2">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm">Week {i+1}</div>
-                    <div className="text-xs text-slate-300">{w.done}/{w.total} sets</div>
-                  </div>
-                  <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden mt-1">
-                    <div className="h-full bg-slate-100" style={{width:`${pct(w.done,w.total)}%`}}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-3">
-            {weightPts.length>=2 && <ChartCard title="Weight (kg)" points={weightPts} unit="kg" />}
-            {bfPts.length>=2 && <ChartCard title="Body Fat (%)" points={bfPts} unit="%" decimals={1} />}
-            {hydrPts.length>=2 && <ChartCard title="Hydration (%)" points={hydrPts} unit="%" decimals={1} />}
-            {musclePts.length>=2 && <ChartCard title="Skeletal Muscle (kg)" points={musclePts} unit="kg" decimals={1} />}
-            {(weightPts.length<2 && bfPts.length<2 && hydrPts.length<2 && musclePts.length<2) &&
-              <div className="rounded-xl border border-neutral-700 p-3 text-sm text-slate-300">
-                Add at least two entries to see progress charts. Log weight/body fat or add a monthly scan.
-              </div>}
-          </div>
-
-          <div className="rounded-xl border border-neutral-700 p-3">
-            <div className="font-semibold mb-2">Body metrics (quick log)</div>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
-              <div className="md:col-span-2">
-                <div className="text-xs">Date</div>
-                <input type="date" className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" value={date} onChange={e=>setDate(e.target.value)}/>
-              </div>
-              <div>
-                <div className="text-xs">Weight (kg)</div>
-                <input className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" value={weight} onChange={e=>setWeight(e.target.value)} placeholder="e.g., 78.5"/>
-              </div>
-              <div>
-                <div className="text-xs">Body fat % (optional)</div>
-                <input className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" value={bodyfat} onChange={e=>setBodyfat(e.target.value)} placeholder="e.g., 18"/>
-              </div>
-              <div><button className="w-full px-3 py-2 text-sm rounded-md border border-neutral-600 bg-neutral-800 hover:bg-neutral-700" onClick={addBody}>Add</button></div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-neutral-700 p-3">
-            <div className="flex items-center justify-between mb-2"><div className="font-semibold">Monthly Body Scan</div></div>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end">
-              <div><div className="text-xs">Date</div><input type="date" className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" value={date} onChange={e=>setDate(e.target.value)}/></div>
-              <div><div className="text-xs">Weight (kg)</div><input className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" value={weight} onChange={e=>setWeight(e.target.value)}/></div>
-              <div><div className="text-xs">Body fat %</div><input className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" value={scan.bf} onChange={e=>setScan({...scan,bf:e.target.value})}/></div>
-              <div><div className="text-xs">Hydration %</div><input className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" value={scan.hydr} onChange={e=>setScan({...scan,hydr:e.target.value})}/></div>
-              <div><div className="text-xs">Skeletal Muscle (kg)</div><input className="w-full border border-neutral-700 rounded-md p-2 text-sm bg-neutral-900" value={scan.muscle} onChange={e=>setScan({...scan,muscle:e.target.value})}/></div>
-              <div><button className="w-full px-3 py-2 text-sm rounded-md border border-neutral-600 bg-neutral-800 hover:bg-neutral-700" onClick={addScan}>Add scan</button></div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function ChartCard({title,points,unit,decimals=1}){
-      const from=points[0]?.value, to=points[points.length-1]?.value;
-      const delta = (from!=null && to!=null)? (to-from) : null;
-      const pctChange = (from>0)? ((delta/from)*100) : null;
-      return (
-        <div className="rounded-xl border border-neutral-700 p-3">
-          <div className="flex items-center justify-between mb-1">
-            <div className="font-semibold">{title}</div>
-            {to!=null && <div className="text-xs text-slate-300">Latest: <b>{to.toFixed(decimals)}</b> {unit} {delta!=null && <span className={delta>=0?'text-emerald-400':'text-rose-400'}>({delta>=0?'+':''}{delta.toFixed(decimals)}{unit} {pctChange!=null?`• ${pctChange.toFixed(1)}%`:''})</span>}</div>}
-          </div>
-          <LineChartSVG points={points} height={140}/>
-        </div>
-      );
-    }
-    function LineChartSVG({points, height=140, padding=28}){
-      if (!points || points.length<2) return <div className="text-xs text-slate-300">Add more data to see the chart.</div>;
-      const W=600,H=height;
-      const values=points.map(p=>p.value);
-      let min=Math.min(...values), max=Math.max(...values);
-      if (min===max){min-=1; max+=1;}
-      const stepX=(W-padding*2)/(points.length-1);
-      const scaleY=v=>{ const t=(v-min)/(max-min); return H - padding - t*(H-padding*2); };
-      const coords=points.map((p,i)=>[padding+i*stepX, scaleY(p.value)]);
-      const d=coords.map((c,i)=>(i?'L':'M')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
-      return (
-        <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',display:'block'}} preserveAspectRatio="none">
-          {[0,1,2,3,4].map(i=>{ const y=padding+i*(H-padding*2)/4; return <line key={i} x1={padding} y1={y} x2={W-padding} y2={y} stroke="#1f2937" strokeWidth="1" />})}
-          <path d={d} fill="none" stroke="#93c5fd" strokeWidth="2.5" />
-          {coords.map((c,i)=>(<circle key={i} cx={c[0]} cy={c[1]} r="2.5" fill="#93c5fd" />))}
-        </svg>
-      );
-    }
-
-    function RecoveryPanel({recovery,setRecovery}){
-      const add = (type)=> setRecovery(prev=>({...prev, [type]:[...(prev[type]||[]), {id:uid(), date:todayISO()}]}));
-      const last = (type)=> (recovery[type]||[]).slice(-5);
-      return (
-        <div className="bg-neutral-900 rounded-xl border border-neutral-700 p-4 space-y-4">
-          <div className="text-sm text-slate-300">
-            Recommendations: <b>Sauna 1–2×/week</b> after Strength B or Long Run (10–20 min). <b>Cryotherapy 1–2×/week</b> after hard run days. <b>Massage device 2–3×/week</b> 5–10 min.
-          </div>
-          <div className="grid md:grid-cols-3 gap-3">
-            {["sauna","cryo","massage"].map(type=>(
-              <div key={type} className="rounded-xl border border-neutral-700 p-3">
-                <div className="font-semibold mb-2">{type[0].toUpperCase()+type.slice(1)}</div>
-                <button className="px-3 py-1.5 text-sm rounded-md border border-neutral-600 bg-neutral-800 hover:bg-neutral-700" onClick={()=>add(type)}>Log {type} today</button>
-                <ul className="text-xs mt-2 space-y-1">{last(type).map(e=>(<li key={e.id}>{e.date}</li>))}</ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  <script type="text/babel" data-presets="env,react">
+  })();
+  </script>
 </body>
 </html>
